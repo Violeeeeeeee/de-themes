@@ -2,7 +2,7 @@
 
 ## Author  : Viole
 
-dir="~/.config/polybar/hack/scripts/rofi"
+dir="$HOME/.config/polybar/hack/scripts/rofi"
 uptime=$(uptime -p | sed -e 's/up //g')
 
 rofi_command="rofi -no-config -theme $dir/powermenu.rasi"
@@ -16,11 +16,11 @@ logout=" Logout"
 
 # Confirmation
 confirm_exit() {
-	rofi -dmenu\
-		-no-config\
-        -i\
-		-no-fixed-num-lines\
-		-p "Are You Sure? : "\
+	rofi -dmenu \
+		-no-config \
+		-i \
+		-no-fixed-num-lines \
+		-p "Are You Sure? : " \
 		-theme $dir/confirm.rasi
 }
 
@@ -37,56 +37,44 @@ case $chosen in
     $shutdown)
 		ans=$(confirm_exit &)
 		if [[ $ans == "yes" || $ans == "YES" || $ans == "y" || $ans == "Y" ]]; then
-			systemctl poweroff
+			qdbus org.kde.ksmserver /KSMServer logout 0 1 2
 		elif [[ $ans == "no" || $ans == "NO" || $ans == "n" || $ans == "N" ]]; then
 			exit 0
-        else
+		else
 			msg
-        fi
+		fi
         ;;
     $reboot)
 		ans=$(confirm_exit &)
 		if [[ $ans == "yes" || $ans == "YES" || $ans == "y" || $ans == "Y" ]]; then
-			systemctl reboot
+			qdbus org.kde.ksmserver /KSMServer logout 0 1 1
 		elif [[ $ans == "no" || $ans == "NO" || $ans == "n" || $ans == "N" ]]; then
 			exit 0
-        else
+		else
 			msg
-        fi
+		fi
         ;;
     $lock)
-		if [[ -f /usr/bin/i3lock ]]; then
-			i3lock
-		elif [[ -f /usr/bin/betterlockscreen ]]; then
-			betterlockscreen -l
-		fi
+		qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock
         ;;
     $suspend)
 		ans=$(confirm_exit &)
 		if [[ $ans == "yes" || $ans == "YES" || $ans == "y" || $ans == "Y" ]]; then
-			mpc -q pause
-			amixer set Master mute
-			systemctl suspend
+			qdbus org.freedesktop.PowerManagement /org/freedesktop/PowerManagement Suspend
 		elif [[ $ans == "no" || $ans == "NO" || $ans == "n" || $ans == "N" ]]; then
 			exit 0
-        else
+		else
 			msg
-        fi
+		fi
         ;;
     $logout)
 		ans=$(confirm_exit &)
 		if [[ $ans == "yes" || $ans == "YES" || $ans == "y" || $ans == "Y" ]]; then
-			if [[ "$DESKTOP_SESSION" == "Openbox" ]]; then
-				openbox --exit
-			elif [[ "$DESKTOP_SESSION" == "bspwm" ]]; then
-				bspc quit
-			elif [[ "$DESKTOP_SESSION" == "i3" ]]; then
-				i3-msg exit
-			fi
+			qdbus org.kde.ksmserver /KSMServer logout 0 0 0
 		elif [[ $ans == "no" || $ans == "NO" || $ans == "n" || $ans == "N" ]]; then
 			exit 0
-        else
+		else
 			msg
-        fi
+		fi
         ;;
 esac
